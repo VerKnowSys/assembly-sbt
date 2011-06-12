@@ -5,6 +5,12 @@ import java.io.PrintWriter
 import scala.collection.mutable
 import scala.io.Source
 
+lazy val assemblyClean = task { FileUtilities.clean(assemblyOutputPath, log); None; }
+lazy val assemblyFast = assemblyTask(assemblyTemporaryPath, assemblyClasspath,
+    assemblyExtraJars, assemblyExclude
+) dependsOn(assemblyClean, compile) describedAs("Builds an optimized, single-file deployable JAR without running tests, just compile")
+
+
 trait AssemblyBuilder extends BasicScalaProject {
   override def classpathFilter = super.classpathFilter -- "*-sources.jar" -- "*-javadoc.jar"
   
@@ -68,5 +74,15 @@ trait AssemblyBuilder extends BasicScalaProject {
                                    assemblyClasspath,
                                    assemblyExtraJars,
                                    assemblyExclude
-                      ) dependsOn(test) describedAs("Builds an optimized, single-file deployable JAR.")
+                      ) dependsOn(assemblyClean, test) describedAs("Builds an optimized, single-file deployable JAR.")
+
+
+  lazy val assemblyClean = task { FileUtilities.clean(assemblyOutputPath, log); None; }
+
+  lazy val assemblyFast = assemblyTask(assemblyTemporaryPath,
+                                       assemblyClasspath,
+                                       assemblyExtraJars,
+                                       assemblyExclude
+                      ) dependsOn(assemblyClean, compile) describedAs("Builds an optimized, single-file deployable JAR without running tests, just compile")
+
 }
